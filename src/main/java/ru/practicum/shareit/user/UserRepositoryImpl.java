@@ -3,6 +3,7 @@ package ru.practicum.shareit.user;
 import org.springframework.stereotype.Repository;
 
 import java.util.*;
+import java.util.Objects;
 
 @Repository
 public class UserRepositoryImpl implements UserRepository {
@@ -37,10 +38,9 @@ public class UserRepositoryImpl implements UserRepository {
         users.remove(id);
     }
 
-    //Проверка email
     @Override
     public boolean isEmailExists(String email, Long userId) {
         return users.values().stream()
-                .anyMatch(user -> user.getEmail().equals(email) && !user.getId().equals(userId));
+                .anyMatch(user -> Objects.equals(email, user.getEmail()) && !user.getId().equals(userId));
     }
 }
