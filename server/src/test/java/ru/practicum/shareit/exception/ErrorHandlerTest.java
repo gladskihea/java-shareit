@@ -40,5 +40,5 @@ class ErrorHandlerTest {
         new ru.practicum.shareit.exception.NotFoundException("test");
         new ru.practicum.shareit.exception.ValidationException("test");
         new ru.practicum.shareit.exception.ConflictException("test");
-
+    }
 }
