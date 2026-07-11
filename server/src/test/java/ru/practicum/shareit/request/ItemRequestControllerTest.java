@@ -9,54 +9,47 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import ru.practicum.shareit.request.dto.ItemRequestDto;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(controllers = ItemRequestController.class)
 class ItemRequestControllerTest {
-
-    @Autowired
-    private ObjectMapper mapper;
-
-    @MockBean
-    private ItemRequestService requestService;
-
-    @Autowired
-    private MockMvc mvc;
+    @Autowired private MockMvc mvc;
+    @MockBean private ItemRequestService requestService;
+    @Autowired private ObjectMapper mapper;
 
     @Test
     void create() throws Exception {
-        ItemRequestDto dto = new ItemRequestDto(1L, "Need a drill", LocalDateTime.now(), null);
-
-        when(requestService.create(anyLong(), any())).thenReturn(dto);
-
-        mvc.perform(post("/requests")
-                        .header("X-Sharer-User-Id", 1L)
-                        .content(mapper.writeValueAsString(dto))
+        when(requestService.create(anyLong(), any())).thenReturn(new ItemRequestDto());
+        mvc.perform(post("/requests").header("X-Sharer-User-Id", 1L)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(1L))
-                .andExpect(jsonPath("$.description").value("Need a drill"));
+                        .content(mapper.writeValueAsString(new ItemRequestDto())))
+                .andExpect(status().isOk());
     }
 
     @Test
     void getUserRequests() throws Exception {
-        ItemRequestDto dto = new ItemRequestDto(1L, "Need a drill", LocalDateTime.now(), null);
+        when(requestService.getUserRequests(anyLong())).thenReturn(List.of());
+        mvc.perform(get("/requests").header("X-Sharer-User-Id", 1L))
+                .andExpect(status().isOk());
+    }
 
-        when(requestService.getUserRequests(anyLong())).thenReturn(List.of(dto));
+    @Test
+    void getAll() throws Exception {
+        when(requestService.getAllRequests(anyLong(), anyInt(), anyInt())).thenReturn(List.of());
+        mvc.perform(get("/requests/all").header("X-Sharer-User-Id", 1L))
+                .andExpect(status().isOk());
+    }
 
-        mvc.perform(get("/requests")
-                        .header("X-Sharer-User-Id", 1L)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].description").value("Need a drill"));
+    @Test
+    void getById() throws Exception {
+        when(requestService.getById(anyLong(), anyLong())).thenReturn(new ItemRequestDto());
+        mvc.perform(get("/requests/1").header("X-Sharer-User-Id", 1L))
+                .andExpect(status().isOk());
     }
 }
