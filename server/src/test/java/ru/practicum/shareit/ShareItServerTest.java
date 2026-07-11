@@ -12,6 +12,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 class ShareItServerTest {
     @Test
     void contextLoads() {
-        ShareItServer.main(new String[] {"--server.port=0"});
+        ShareItServer.main(new String[]{"--server.port=0"});
     }
 }
