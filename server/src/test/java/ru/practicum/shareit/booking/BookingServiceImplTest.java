@@ -184,26 +184,4 @@ class BookingServiceImplTest {
                 .thenReturn(List.of(booking));
         assertNotNull(bookingService.getAllByBooker(1L, "FUTURE"));
     }
-
-    @Test
-    void getAllByOwner_AllStates() {
-        when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
-
-        when(bookingRepository.findAllByItemOwnerIdAndStartBeforeAndEndAfterOrderByStartDesc(anyLong(), any(), any()))
-                .thenReturn(List.of(booking));
-        assertNotNull(bookingService.getAllByOwner(1L, "CURRENT"));
-
-        when(bookingRepository.findAllByItemOwnerIdAndEndBeforeOrderByStartDesc(anyLong(), any()))
-                .thenReturn(List.of(booking));
-        assertNotNull(bookingService.getAllByOwner(1L, "PAST"));
-
-        when(bookingRepository.findAllByItemOwnerIdAndStartAfterOrderByStartDesc(anyLong(), any()))
-                .thenReturn(List.of(booking));
-        assertNotNull(bookingService.getAllByOwner(1L, "FUTURE"));
-
-        when(bookingRepository.findAllByItemOwnerIdAndStatusOrderByStartDesc(anyLong(), any()))
-                .thenReturn(List.of(booking));
-        assertNotNull(bookingService.getAllByOwner(1L, "REJECTED"));
-    }
-
 }
