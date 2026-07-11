@@ -60,7 +60,6 @@ class ItemRequestServiceImplTest {
 
     @Test
     void getAllRequests_Pagination() {
-        // Проверяем работу пагинации (from/size)
         when(requestRepository.findAllByRequestorIdNot(anyLong(), any(Pageable.class)))
                 .thenReturn(new PageImpl<>(List.of()));
 
@@ -87,5 +86,11 @@ class ItemRequestServiceImplTest {
         when(requestRepository.findById(anyLong())).thenReturn(Optional.empty());
 
         assertThrows(NotFoundException.class, () -> requestService.getById(1L, 1L));
+    }
+
+    @Test
+    void getUserRequests_UserNotFound_ThrowException() {
+        when(userRepository.findById(anyLong())).thenReturn(Optional.empty());
+        assertThrows(NotFoundException.class, () -> requestService.getUserRequests(1L));
     }
 }
