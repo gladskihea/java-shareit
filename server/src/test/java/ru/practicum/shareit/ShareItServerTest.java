@@ -1,12 +1,10 @@
 package ru.practicum.shareit;
 
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
 
-@SpringBootTest
 class ShareItServerTest {
     @Test
     void mainTest() {
-        ShareItServer.main(new String[]{});
+        ShareItServer.main(new String[] {"--spring.profiles.active=test", "--server.port=0"});
     }
 }
