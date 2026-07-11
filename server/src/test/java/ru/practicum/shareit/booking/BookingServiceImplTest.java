@@ -184,6 +184,7 @@ class BookingServiceImplTest {
                 .thenReturn(List.of(booking));
         assertNotNull(bookingService.getAllByBooker(1L, "FUTURE"));
     }
+
     @Test
     void getAllByOwner_AllStates() {
         when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
