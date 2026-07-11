@@ -160,4 +160,49 @@ class BookingServiceImplTest {
                 .thenReturn(List.of(booking));
         assertNotNull(bookingService.getAllByOwner(1L, "REJECTED"));
     }
+
+    @Test
+    void getAllByBooker_StateCurrent_Success() {
+        when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
+        when(bookingRepository.findAllByBookerIdAndStartBeforeAndEndAfterOrderByStartDesc(anyLong(), any(), any()))
+                .thenReturn(List.of(booking));
+        assertNotNull(bookingService.getAllByBooker(1L, "CURRENT"));
+    }
+
+    @Test
+    void getAllByBooker_StatePast_Success() {
+        when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
+        when(bookingRepository.findAllByBookerIdAndEndBeforeOrderByStartDesc(anyLong(), any()))
+                .thenReturn(List.of(booking));
+        assertNotNull(bookingService.getAllByBooker(1L, "PAST"));
+    }
+
+    @Test
+    void getAllByBooker_StateFuture_Success() {
+        when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
+        when(bookingRepository.findAllByBookerIdAndStartAfterOrderByStartDesc(anyLong(), any()))
+                .thenReturn(List.of(booking));
+        assertNotNull(bookingService.getAllByBooker(1L, "FUTURE"));
+    }
+    @Test
+    void getAllByOwner_AllStates() {
+        when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
+
+        when(bookingRepository.findAllByItemOwnerIdAndStartBeforeAndEndAfterOrderByStartDesc(anyLong(), any(), any()))
+                .thenReturn(List.of(booking));
+        assertNotNull(bookingService.getAllByOwner(1L, "CURRENT"));
+
+        when(bookingRepository.findAllByItemOwnerIdAndEndBeforeOrderByStartDesc(anyLong(), any()))
+                .thenReturn(List.of(booking));
+        assertNotNull(bookingService.getAllByOwner(1L, "PAST"));
+
+        when(bookingRepository.findAllByItemOwnerIdAndStartAfterOrderByStartDesc(anyLong(), any()))
+                .thenReturn(List.of(booking));
+        assertNotNull(bookingService.getAllByOwner(1L, "FUTURE"));
+
+        when(bookingRepository.findAllByItemOwnerIdAndStatusOrderByStartDesc(anyLong(), any()))
+                .thenReturn(List.of(booking));
+        assertNotNull(bookingService.getAllByOwner(1L, "REJECTED"));
+    }
+
 }
