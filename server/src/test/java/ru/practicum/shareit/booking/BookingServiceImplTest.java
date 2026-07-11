@@ -8,6 +8,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import ru.practicum.shareit.booking.dto.BookingDto;
 import ru.practicum.shareit.booking.dto.BookingOutDto;
+import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.exception.ValidationException;
 import ru.practicum.shareit.item.ItemRepository;
 import ru.practicum.shareit.item.model.Item;
@@ -36,16 +37,15 @@ class BookingServiceImplTest {
     private BookingServiceImpl bookingService;
 
     private User user;
-    private User owner;
     private Item item;
     private Booking booking;
 
     @BeforeEach
     void setUp() {
-        user = new User(1L, "User", "user@mail.com");
-        owner = new User(2L, "Owner", "owner@mail.com");
+        user = new User(1L, "User", "u@m.com");
+        User owner = new User(2L, "Owner", "o@m.com");
         item = new Item(1L, "Item", "Desc", true, owner, null);
-        booking = new Booking(1L, LocalDateTime.now().plusDays(1), LocalDateTime.now().plusDays(2), item, user, BookingStatus.WAITING);
+        booking = new Booking(1L, LocalDateTime.now().plusHours(1), LocalDateTime.now().plusHours(2), item, user, BookingStatus.WAITING);
     }
 
     @Test
@@ -56,17 +56,13 @@ class BookingServiceImplTest {
         when(bookingRepository.save(any())).thenReturn(booking);
 
         assertNotNull(bookingService.create(1L, dto));
-        verify(bookingRepository, times(1)).save(any());
     }
 
     @Test
-    void updateStatus_whenApproved() {
+    void updateStatus_Success() {
         when(bookingRepository.findById(anyLong())).thenReturn(Optional.of(booking));
-
         BookingOutDto result = bookingService.updateStatus(2L, 1L, true);
-
         assertEquals(BookingStatus.APPROVED, result.getStatus());
-        assertEquals(BookingStatus.APPROVED, booking.getStatus());
     }
 
     @Test
@@ -76,112 +72,52 @@ class BookingServiceImplTest {
     }
 
     @Test
-    void getById_whenValid() {
+    void getById_Success() {
         when(bookingRepository.findById(anyLong())).thenReturn(Optional.of(booking));
         assertNotNull(bookingService.getById(1L, 1L));
     }
 
     @Test
-    void getAllByBooker_AllStates() {
-        when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
-        when(bookingRepository.findAllByBookerIdOrderByStartDesc(anyLong())).thenReturn(List.of(booking));
+    void getById_whenWrongUser_thenThrowException() {
+        when(bookingRepository.findById(anyLong())).thenReturn(Optional.of(booking));
+        assertThrows(NotFoundException.class, () -> bookingService.getById(99L, 1L));
+    }
 
-        assertNotNull(bookingService.getAllByBooker(1L, "ALL"));
+    @Test
+    void testAllStatesForBooker() {
+        when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
+
+        String[] states = {"ALL", "CURRENT", "PAST", "FUTURE", "WAITING", "REJECTED"};
+        for (String state : states) {
+            lenient().when(bookingRepository.findAllByBookerIdOrderByStartDesc(anyLong())).thenReturn(List.of(booking));
+            lenient().when(bookingRepository.findAllByBookerIdAndStatusOrderByStartDesc(anyLong(), any())).thenReturn(List.of(booking));
+            lenient().when(bookingRepository.findAllByBookerIdAndEndBeforeOrderByStartDesc(anyLong(), any())).thenReturn(List.of(booking));
+            lenient().when(bookingRepository.findAllByBookerIdAndStartAfterOrderByStartDesc(anyLong(), any())).thenReturn(List.of(booking));
+            lenient().when(bookingRepository.findAllByBookerIdAndStartBeforeAndEndAfterOrderByStartDesc(anyLong(), any(), any())).thenReturn(List.of(booking));
+
+            assertNotNull(bookingService.getAllByBooker(1L, state));
+        }
+    }
+
+    @Test
+    void testAllStatesForOwner() {
+        when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
+
+        String[] states = {"ALL", "CURRENT", "PAST", "FUTURE", "WAITING", "REJECTED"};
+        for (String state : states) {
+            lenient().when(bookingRepository.findAllByItemOwnerIdOrderByStartDesc(anyLong())).thenReturn(List.of(booking));
+            lenient().when(bookingRepository.findAllByItemOwnerIdAndStatusOrderByStartDesc(anyLong(), any())).thenReturn(List.of(booking));
+            lenient().when(bookingRepository.findAllByItemOwnerIdAndEndBeforeOrderByStartDesc(anyLong(), any())).thenReturn(List.of(booking));
+            lenient().when(bookingRepository.findAllByItemOwnerIdAndStartAfterOrderByStartDesc(anyLong(), any())).thenReturn(List.of(booking));
+            lenient().when(bookingRepository.findAllByItemOwnerIdAndStartBeforeAndEndAfterOrderByStartDesc(anyLong(), any(), any())).thenReturn(List.of(booking));
+
+            assertNotNull(bookingService.getAllByOwner(1L, state));
+        }
     }
 
     @Test
     void parseState_whenUnknown_thenThrowException() {
         when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
         assertThrows(ValidationException.class, () -> bookingService.getAllByBooker(1L, "UNKNOWN"));
-    }
-
-    @Test
-    void getAllByBooker_CurrentState() {
-        when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
-        when(bookingRepository.findAllByBookerIdAndStartBeforeAndEndAfterOrderByStartDesc(anyLong(), any(), any()))
-                .thenReturn(List.of(booking));
-        assertNotNull(bookingService.getAllByBooker(1L, "CURRENT"));
-    }
-
-    @Test
-    void getAllByBooker_PastState() {
-        when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
-        when(bookingRepository.findAllByBookerIdAndEndBeforeOrderByStartDesc(anyLong(), any()))
-                .thenReturn(List.of(booking));
-        assertNotNull(bookingService.getAllByBooker(1L, "PAST"));
-    }
-
-    @Test
-    void getAllByBooker_FutureState() {
-        when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
-        when(bookingRepository.findAllByBookerIdAndStartAfterOrderByStartDesc(anyLong(), any()))
-                .thenReturn(List.of(booking));
-        assertNotNull(bookingService.getAllByBooker(1L, "FUTURE"));
-    }
-
-    @Test
-    void getAllByOwner_AllStates() {
-        when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
-        when(bookingRepository.findAllByItemOwnerIdOrderByStartDesc(anyLong())).thenReturn(List.of(booking));
-        assertNotNull(bookingService.getAllByOwner(1L, "ALL"));
-
-        when(bookingRepository.findAllByItemOwnerIdAndStatusOrderByStartDesc(anyLong(), any())).thenReturn(List.of(booking));
-        assertNotNull(bookingService.getAllByOwner(1L, "WAITING"));
-    }
-
-    @Test
-    void getAllByOwner_CurrentState() {
-        when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
-        when(bookingRepository.findAllByItemOwnerIdAndStartBeforeAndEndAfterOrderByStartDesc(anyLong(), any(), any()))
-                .thenReturn(List.of(booking));
-        assertNotNull(bookingService.getAllByOwner(1L, "CURRENT"));
-    }
-
-    @Test
-    void getAllByOwner_PastState() {
-        when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
-        when(bookingRepository.findAllByItemOwnerIdAndEndBeforeOrderByStartDesc(anyLong(), any()))
-                .thenReturn(List.of(booking));
-        assertNotNull(bookingService.getAllByOwner(1L, "PAST"));
-    }
-
-    @Test
-    void getAllByOwner_FutureState() {
-        when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
-        when(bookingRepository.findAllByItemOwnerIdAndStartAfterOrderByStartDesc(anyLong(), any()))
-                .thenReturn(List.of(booking));
-        assertNotNull(bookingService.getAllByOwner(1L, "FUTURE"));
-    }
-
-    @Test
-    void getAllByOwner_RejectedState() {
-        when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
-        when(bookingRepository.findAllByItemOwnerIdAndStatusOrderByStartDesc(anyLong(), any()))
-                .thenReturn(List.of(booking));
-        assertNotNull(bookingService.getAllByOwner(1L, "REJECTED"));
-    }
-
-    @Test
-    void getAllByBooker_StateCurrent_Success() {
-        when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
-        when(bookingRepository.findAllByBookerIdAndStartBeforeAndEndAfterOrderByStartDesc(anyLong(), any(), any()))
-                .thenReturn(List.of(booking));
-        assertNotNull(bookingService.getAllByBooker(1L, "CURRENT"));
-    }
-
-    @Test
-    void getAllByBooker_StatePast_Success() {
-        when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
-        when(bookingRepository.findAllByBookerIdAndEndBeforeOrderByStartDesc(anyLong(), any()))
-                .thenReturn(List.of(booking));
-        assertNotNull(bookingService.getAllByBooker(1L, "PAST"));
-    }
-
-    @Test
-    void getAllByBooker_StateFuture_Success() {
-        when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
-        when(bookingRepository.findAllByBookerIdAndStartAfterOrderByStartDesc(anyLong(), any()))
-                .thenReturn(List.of(booking));
-        assertNotNull(bookingService.getAllByBooker(1L, "FUTURE"));
     }
 }

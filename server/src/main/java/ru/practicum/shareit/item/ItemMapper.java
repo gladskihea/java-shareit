@@ -15,7 +15,11 @@ public class ItemMapper {
         dto.setName(item.getName());
         dto.setDescription(item.getDescription());
         dto.setAvailable(item.getAvailable());
-        dto.setComments(new ArrayList<>()); // Инициализируем пустым списком
+
+        if (item.getRequest() != null) {
+            dto.setRequestId(item.getRequest().getId());
+        }
+
         return dto;
     }
 
