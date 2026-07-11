@@ -9,9 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.util.DefaultUriBuilderFactory;
 import ru.practicum.shareit.client.BaseClient;
 import ru.practicum.shareit.item.dto.ItemDto;
-import ru.practicum.shareit.item.dto.CommentDto; // Создай пустой DTO если его нет
-
-import java.util.Map;
+import ru.practicum.shareit.item.dto.CommentDto;
 
 @Service
 public class ItemClient extends BaseClient {
