@@ -35,4 +35,10 @@ class ErrorHandlerTest {
         Map<String, String> resp = handler.handleThrowable(e);
         assertEquals("Произошла непредвиденная ошибка сервера: Error", resp.get("error"));
     }
+    @Test
+    void testUtilityClasses() {
+        new ru.practicum.shareit.exception.NotFoundException("test");
+        new ru.practicum.shareit.exception.ValidationException("test");
+        new ru.practicum.shareit.exception.ConflictException("test");
+
 }
