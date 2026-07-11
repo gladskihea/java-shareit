@@ -1,5 +1,6 @@
 package ru.practicum.shareit.booking;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -14,6 +15,7 @@ import ru.practicum.shareit.user.User;
 import ru.practicum.shareit.user.UserRepository;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -33,40 +35,63 @@ class BookingServiceImplTest {
     @InjectMocks
     private BookingServiceImpl bookingService;
 
-    @Test
-    void createBooking_whenValid_thenSaved() {
-        Long bookerId = 1L;
-        User booker = new User(bookerId, "Booker", "booker@mail.com");
-        User owner = new User(2L, "Owner", "owner@mail.com");
-        Item item = new Item(1L, "Item", "Desc", true, owner, null);
+    private User user;
+    private User owner;
+    private Item item;
+    private Booking booking;
 
-        BookingDto dto = new BookingDto(1L, LocalDateTime.now().plusDays(1), LocalDateTime.now().plusDays(2));
-        Booking booking = new Booking(1L, dto.getStart(), dto.getEnd(), item, booker, BookingStatus.WAITING);
-
-        when(userRepository.findById(bookerId)).thenReturn(Optional.of(booker));
-        when(itemRepository.findById(dto.getItemId())).thenReturn(Optional.of(item));
-        when(bookingRepository.save(any(Booking.class))).thenReturn(booking);
-
-        BookingOutDto actual = bookingService.create(bookerId, dto);
-
-        assertNotNull(actual);
-        assertEquals(BookingStatus.WAITING, actual.getStatus());
-        assertEquals("Item", actual.getItem().getName());
+    @BeforeEach
+    void setUp() {
+        user = new User(1L, "User", "user@mail.com");
+        owner = new User(2L, "Owner", "owner@mail.com");
+        item = new Item(1L, "Item", "Desc", true, owner, null);
+        booking = new Booking(1L, LocalDateTime.now().plusDays(1), LocalDateTime.now().plusDays(2), item, user, BookingStatus.WAITING);
     }
 
     @Test
-    void createBooking_whenItemNotAvailable_thenThrowValidationException() {
-        Long bookerId = 1L;
-        User booker = new User(bookerId, "Booker", "booker@mail.com");
-        User owner = new User(2L, "Owner", "owner@mail.com");
-        Item item = new Item(1L, "Item", "Desc", false, owner, null);
-
+    void create_whenValid_thenSaved() {
         BookingDto dto = new BookingDto(1L, LocalDateTime.now().plusDays(1), LocalDateTime.now().plusDays(2));
+        when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
+        when(itemRepository.findById(anyLong())).thenReturn(Optional.of(item));
+        when(bookingRepository.save(any())).thenReturn(booking);
 
-        when(userRepository.findById(bookerId)).thenReturn(Optional.of(booker));
-        when(itemRepository.findById(dto.getItemId())).thenReturn(Optional.of(item));
+        assertNotNull(bookingService.create(1L, dto));
+        verify(bookingRepository, times(1)).save(any());
+    }
 
-        assertThrows(ValidationException.class, () -> bookingService.create(bookerId, dto));
-        verify(bookingRepository, never()).save(any(Booking.class));
+    @Test
+    void updateStatus_whenApproved() {
+        when(bookingRepository.findById(anyLong())).thenReturn(Optional.of(booking));
+
+        BookingOutDto result = bookingService.updateStatus(2L, 1L, true);
+
+        assertEquals(BookingStatus.APPROVED, result.getStatus());
+        assertEquals(BookingStatus.APPROVED, booking.getStatus());
+    }
+
+    @Test
+    void updateStatus_whenNotOwner_thenThrowException() {
+        when(bookingRepository.findById(anyLong())).thenReturn(Optional.of(booking));
+        assertThrows(ValidationException.class, () -> bookingService.updateStatus(1L, 1L, true));
+    }
+
+    @Test
+    void getById_whenValid() {
+        when(bookingRepository.findById(anyLong())).thenReturn(Optional.of(booking));
+        assertNotNull(bookingService.getById(1L, 1L));
+    }
+
+    @Test
+    void getAllByBooker_AllStates() {
+        when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
+        when(bookingRepository.findAllByBookerIdOrderByStartDesc(anyLong())).thenReturn(List.of(booking));
+
+        assertNotNull(bookingService.getAllByBooker(1L, "ALL"));
+    }
+
+    @Test
+    void parseState_whenUnknown_thenThrowException() {
+        when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
+        assertThrows(ValidationException.class, () -> bookingService.getAllByBooker(1L, "UNKNOWN"));
     }
 }

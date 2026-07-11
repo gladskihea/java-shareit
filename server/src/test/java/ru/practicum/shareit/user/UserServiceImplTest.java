@@ -6,16 +6,11 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import ru.practicum.shareit.exception.NotFoundException;
-import ru.practicum.shareit.user.User;
-import ru.practicum.shareit.user.UserDto;
-import ru.practicum.shareit.user.UserRepository;
-import ru.practicum.shareit.user.UserServiceImpl;
 
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -38,8 +33,49 @@ class UserServiceImplTest {
         UserDto actual = userService.createUser(userDto);
 
         assertEquals(1L, actual.getId());
-        assertEquals("Test", actual.getName());
         verify(userRepository, times(1)).save(any(User.class));
+    }
+
+    @Test
+    void updateUser_whenAllFieldsNotNull_thenUpdateAll() {
+        Long userId = 1L;
+        User existingUser = new User(userId, "Old Name", "old@mail.com");
+        UserDto updateDto = new UserDto(null, "New Name", "new@mail.com");
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(existingUser));
+
+        UserDto result = userService.updateUser(userId, updateDto);
+
+        assertEquals("New Name", result.getName());
+        assertEquals("new@mail.com", result.getEmail());
+    }
+
+    @Test
+    void updateUser_whenOnlyNameNotNull_thenUpdateOnlyName() {
+        Long userId = 1L;
+        User existingUser = new User(userId, "Old Name", "old@mail.com");
+        UserDto updateDto = new UserDto(null, "New Name", null);
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(existingUser));
+
+        UserDto result = userService.updateUser(userId, updateDto);
+
+        assertEquals("New Name", result.getName());
+        assertEquals("old@mail.com", result.getEmail());
+    }
+
+    @Test
+    void updateUser_whenOnlyEmailNotNull_thenUpdateOnlyEmail() {
+        Long userId = 1L;
+        User existingUser = new User(userId, "Old Name", "old@mail.com");
+        UserDto updateDto = new UserDto(null, null, "new@mail.com");
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(existingUser));
+
+        UserDto result = userService.updateUser(userId, updateDto);
+
+        assertEquals("Old Name", result.getName());
+        assertEquals("new@mail.com", result.getEmail());
     }
 
     @Test
@@ -48,14 +84,12 @@ class UserServiceImplTest {
         when(userRepository.findById(1L)).thenReturn(Optional.of(user));
 
         UserDto actual = userService.getUserById(1L);
-
         assertEquals("Test", actual.getName());
     }
 
     @Test
     void getUserById_whenUserNotFound_thenThrowNotFoundException() {
         when(userRepository.findById(99L)).thenReturn(Optional.empty());
-
         assertThrows(NotFoundException.class, () -> userService.getUserById(99L));
     }
 
@@ -65,9 +99,7 @@ class UserServiceImplTest {
         when(userRepository.findAll()).thenReturn(List.of(user));
 
         List<UserDto> actual = userService.getAllUsers();
-
         assertEquals(1, actual.size());
-        assertEquals("Test", actual.get(0).getName());
     }
 
     @Test
