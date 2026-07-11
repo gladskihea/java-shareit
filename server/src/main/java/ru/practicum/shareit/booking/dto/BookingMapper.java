@@ -3,7 +3,6 @@ package ru.practicum.shareit.booking.dto;
 import ru.practicum.shareit.booking.Booking;
 import ru.practicum.shareit.item.ItemMapper;
 import ru.practicum.shareit.user.UserMapper;
-import ru.practicum.shareit.user.UserDto;
 
 public class BookingMapper {
     public static BookingOutDto toBookingOutDto(Booking booking) {
