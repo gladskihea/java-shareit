@@ -67,6 +67,7 @@ class ItemControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].name").value("Drill"));
     }
+
     @Test
     void updateItem() throws Exception {
         ItemDto updatedDto = new ItemDto(1L, "Updated Name", "Updated Desc", true, null, null, null, null);
@@ -83,6 +84,7 @@ class ItemControllerTest {
                 .andExpect(jsonPath("$.name").value("Updated Name"))
                 .andExpect(jsonPath("$.description").value("Updated Desc"));
     }
+
     @Test
     void addComment() throws Exception {
         CommentDto commentDto = new CommentDto(1L, "Great tool!", "Author", null);
