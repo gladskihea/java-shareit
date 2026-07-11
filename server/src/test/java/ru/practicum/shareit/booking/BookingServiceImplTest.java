@@ -94,4 +94,38 @@ class BookingServiceImplTest {
         when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
         assertThrows(ValidationException.class, () -> bookingService.getAllByBooker(1L, "UNKNOWN"));
     }
+
+    @Test
+    void getAllByBooker_CurrentState() {
+        when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
+        when(bookingRepository.findAllByBookerIdAndStartBeforeAndEndAfterOrderByStartDesc(anyLong(), any(), any()))
+                .thenReturn(List.of(booking));
+        assertNotNull(bookingService.getAllByBooker(1L, "CURRENT"));
+    }
+
+    @Test
+    void getAllByBooker_PastState() {
+        when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
+        when(bookingRepository.findAllByBookerIdAndEndBeforeOrderByStartDesc(anyLong(), any()))
+                .thenReturn(List.of(booking));
+        assertNotNull(bookingService.getAllByBooker(1L, "PAST"));
+    }
+
+    @Test
+    void getAllByBooker_FutureState() {
+        when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
+        when(bookingRepository.findAllByBookerIdAndStartAfterOrderByStartDesc(anyLong(), any()))
+                .thenReturn(List.of(booking));
+        assertNotNull(bookingService.getAllByBooker(1L, "FUTURE"));
+    }
+
+    @Test
+    void getAllByOwner_AllStates() {
+        when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
+        when(bookingRepository.findAllByItemOwnerIdOrderByStartDesc(anyLong())).thenReturn(List.of(booking));
+        assertNotNull(bookingService.getAllByOwner(1L, "ALL"));
+
+        when(bookingRepository.findAllByItemOwnerIdAndStatusOrderByStartDesc(anyLong(), any())).thenReturn(List.of(booking));
+        assertNotNull(bookingService.getAllByOwner(1L, "WAITING"));
+    }
 }

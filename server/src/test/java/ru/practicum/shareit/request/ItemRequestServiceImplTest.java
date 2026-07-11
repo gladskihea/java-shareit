@@ -73,4 +73,13 @@ class ItemRequestServiceImplTest {
         when(requestRepository.findById(anyLong())).thenReturn(Optional.empty());
         assertThrows(NotFoundException.class, () -> requestService.getById(1L, 1L));
     }
+
+    @Test
+    void getAllRequests_withParams() {
+        when(requestRepository.findAllByRequestorIdNot(anyLong(), any()))
+                .thenReturn(new org.springframework.data.domain.PageImpl<>(List.of()));
+
+        List<ItemRequestDto> result = requestService.getAllRequests(1L, 5, 5);
+        assertNotNull(result);
+    }
 }
