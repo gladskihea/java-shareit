@@ -7,6 +7,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.dto.ItemDto;
 
 import java.util.List;
@@ -65,5 +66,36 @@ class ItemControllerTest {
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].name").value("Drill"));
+    }
+    @Test
+    void updateItem() throws Exception {
+        ItemDto updatedDto = new ItemDto(1L, "Updated Name", "Updated Desc", true, null, null, null, null);
+
+        when(itemService.updateItem(anyLong(), anyLong(), any())).thenReturn(updatedDto);
+
+        mvc.perform(patch("/items/1")
+                        .header("X-Sharer-User-Id", 1L)
+                        .content(mapper.writeValueAsString(updatedDto))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(1L))
+                .andExpect(jsonPath("$.name").value("Updated Name"))
+                .andExpect(jsonPath("$.description").value("Updated Desc"));
+    }
+    @Test
+    void addComment() throws Exception {
+        CommentDto commentDto = new CommentDto(1L, "Great tool!", "Author", null);
+
+        when(itemService.addComment(anyLong(), anyLong(), any())).thenReturn(commentDto);
+
+        mvc.perform(post("/items/1/comment")
+                        .header("X-Sharer-User-Id", 1L)
+                        .content(mapper.writeValueAsString(commentDto))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(1L))
+                .andExpect(jsonPath("$.text").value("Great tool!"));
     }
 }
