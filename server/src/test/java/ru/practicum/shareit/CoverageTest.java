@@ -21,7 +21,8 @@ class CoverageTest {
 
     @Test
     void testMainAndConstructors() {
-        ShareItServer.main(new String[]{});
+        ShareItServer.main(new String[]{"--server.port=0"});
+
         assertNotNull(new ShareItServer());
 
         assertNotNull(new UserMapper());
@@ -46,7 +47,6 @@ class CoverageTest {
         ItemDto dtoWithRequest = ItemMapper.toItemDto(item);
         assertNotNull(dtoWithRequest.getRequestId());
 
-        // Покрываем toItem
         ItemDto itemDto = new ItemDto();
         itemDto.setName("New");
         assertNotNull(ItemMapper.toItem(itemDto));
