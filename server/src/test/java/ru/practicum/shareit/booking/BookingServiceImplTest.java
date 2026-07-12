@@ -120,4 +120,33 @@ class BookingServiceImplTest {
         when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
         assertThrows(ValidationException.class, () -> bookingService.getAllByBooker(1L, "UNKNOWN"));
     }
+
+    @Test
+    void create_whenItemNotAvailable_thenThrowValidationException() {
+        item.setAvailable(false);
+        BookingDto dto = new BookingDto(1L, LocalDateTime.now().plusDays(1), LocalDateTime.now().plusDays(2));
+        when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
+        when(itemRepository.findById(anyLong())).thenReturn(Optional.of(item));
+
+        assertThrows(ValidationException.class, () -> bookingService.create(1L, dto));
+    }
+
+    @Test
+    void create_whenBookerIsOwner_thenThrowNotFoundException() {
+        // Пользователь с ID=2 - это владелец вещи (определен в setUp)
+        BookingDto dto = new BookingDto(1L, LocalDateTime.now().plusDays(1), LocalDateTime.now().plusDays(2));
+        when(userRepository.findById(2L)).thenReturn(Optional.of(new User(2L, "Owner", "o@m.com")));
+        when(itemRepository.findById(anyLong())).thenReturn(Optional.of(item));
+
+        assertThrows(NotFoundException.class, () -> bookingService.create(2L, dto));
+    }
+
+    @Test
+    void create_whenEndIsBeforeStart_thenThrowValidationException() {
+        BookingDto dto = new BookingDto(1L, LocalDateTime.now().plusDays(2), LocalDateTime.now().plusDays(1)); // end раньше start
+        when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
+        when(itemRepository.findById(anyLong())).thenReturn(Optional.of(item));
+
+        assertThrows(ValidationException.class, () -> bookingService.create(1L, dto));
+    }
 }

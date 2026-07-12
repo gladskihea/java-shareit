@@ -128,4 +128,24 @@ class ItemServiceImplTest {
 
         assertThrows(ValidationException.class, () -> itemService.addComment(1L, 1L, new CommentDto(null, "Text", null, null)));
     }
+    @Test
+    void getAllItemsByOwner_Success() {
+        Item item2 = new Item(2L, "Screwdriver", "Good tool", true, user, null);
+
+        when(itemRepository.findAllByOwnerIdOrderByIdAsc(user.getId())).thenReturn(List.of(item, item2));
+
+        when(commentRepository.findAllByItemId(anyLong())).thenReturn(List.of());
+        when(bookingRepository.findAllByItemOwnerIdOrderByStartDesc(anyLong())).thenReturn(List.of());
+
+        List<ItemDto> result = itemService.getAllItemsByOwner(user.getId());
+
+        assertNotNull(result);
+        assertEquals(2, result.size());
+        assertEquals("Drill", result.get(0).getName());
+        assertEquals("Screwdriver", result.get(1).getName());
+
+        verify(itemRepository, times(1)).findAllByOwnerIdOrderByIdAsc(user.getId());
+        verify(commentRepository, times(2)).findAllByItemId(anyLong()); // 2 раза, так как 2 вещи
+        verify(bookingRepository, times(2)).findAllByItemOwnerIdOrderByStartDesc(anyLong());
+    }
 }
