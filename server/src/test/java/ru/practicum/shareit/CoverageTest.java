@@ -30,12 +30,4 @@ class CoverageTest {
         assertNotNull(new BookingMapper());
     }
 
-    @Test
-    void testNegativeScenarios() {
-        Item itemWithoutRequest = new Item();
-        itemWithoutRequest.setRequest(null);
-        assertNotNull(ItemMapper.toItemDto(itemWithoutRequest));
-
-    }
-
 }

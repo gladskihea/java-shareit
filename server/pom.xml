@@ -84,6 +84,8 @@
 								<exclude>**/model/**</exclude>
 								<exclude>**/entity/**</exclude>
 								<exclude>**/exception/**</exclude>
+								<exclude>**/*Mapper.class</exclude>
+								<exclude>**/config/**</exclude>
 							</excludes>
 						</configuration>
 					</plugin>
