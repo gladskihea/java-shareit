@@ -29,4 +29,9 @@ class CoverageTest {
         assertNotNull(new BookingMapper());
     }
 
+    @Test
+    void coverBookingState() {
+        assertNotNull(ru.practicum.shareit.booking.BookingState.values());
+        assertNotNull(ru.practicum.shareit.booking.BookingState.valueOf("ALL"));
+    }
 }
