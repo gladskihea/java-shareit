@@ -128,6 +128,7 @@ class ItemServiceImplTest {
 
         assertThrows(ValidationException.class, () -> itemService.addComment(1L, 1L, new CommentDto(null, "Text", null, null)));
     }
+
     @Test
     void getAllItemsByOwner_Success() {
         Item item2 = new Item(2L, "Screwdriver", "Good tool", true, user, null);
